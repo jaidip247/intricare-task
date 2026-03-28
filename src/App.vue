@@ -1,5 +1,6 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { useTheme } from 'vuetify'
 import syncedIcon1 from './assets/synced_icon_1.png'
 import syncedIcon2 from './assets/synced_icon_2.png'
 import activityIcon1 from './assets/activity-1.png'
@@ -27,6 +28,14 @@ const aiAutoHandle = ref(false)
 const isSidebarOpen = ref(false)
 const toggleSidebar = () => { isSidebarOpen.value = !isSidebarOpen.value }
 const closeSidebar = () => { isSidebarOpen.value = false }
+const isSidebarCollapsed = ref(false)
+const toggleSidebarCollapse = () => { isSidebarCollapsed.value = !isSidebarCollapsed.value }
+const theme = useTheme()
+const activeTheme = ref('light')
+const setTheme = (mode) => {
+  activeTheme.value = mode
+  theme.global.name.value = mode === 'dark' ? 'customDark' : 'customLight'
+}
 const crmRows = [
   { synced: true, icon: syncedIcon1, time: '2h ago' },
   { synced: false },
@@ -122,51 +131,53 @@ onBeforeUnmount(() => {
 <template>
   <v-app class="campaign-app">
     <div class="layout-shell">
-      <aside class="sidebar" :class="{ 'sidebar--open': isSidebarOpen }">
+      <aside class="sidebar" :class="{ 'sidebar--open': isSidebarOpen, 'sidebar--collapsed': isSidebarCollapsed }">
         <div class="brand">
-          <img class="brand-logo" src="./assets/logo.png" alt="Logo">
-          <svg
-            class="brand-helper-icon"
-            width="18"
-            height="18"
-            viewBox="0 0 18 18"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-label="Toggle sidebar"
-            role="img"
-          >
-            <path
-              d="M2.25 8.25C2.25 5.42157 2.25 4.00736 3.12868 3.12868C4.00736 2.25 5.42157 2.25 8.25 2.25H9.75C12.5784 2.25 13.9927 2.25 14.8713 3.12868C15.75 4.00736 15.75 5.42157 15.75 8.25V9.75C15.75 12.5784 15.75 13.9927 14.8713 14.8713C13.9927 15.75 12.5784 15.75 9.75 15.75H8.25C5.42157 15.75 4.00736 15.75 3.12868 14.8713C2.25 13.9927 2.25 12.5784 2.25 9.75V8.25Z"
-              stroke="#5E5873"
-              stroke-width="1.125"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M11.25 2.25V15.75"
-              stroke="#5E5873"
-              stroke-width="1.125"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M6 6.75L6.83114 7.40901C7.77705 8.15903 8.25 8.53403 8.25 9C8.25 9.46597 7.77705 9.84097 6.83114 10.591L6 11.25"
-              stroke="#5E5873"
-              stroke-width="1.125"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+          <img v-show="!isSidebarCollapsed" class="brand-logo" src="./assets/logo.png" alt="Logo">
+          <button class="brand-helper-btn" type="button" @click="toggleSidebarCollapse">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-label="Toggle sidebar"
+              role="img"
+              :class="{ 'icon-flipped': isSidebarCollapsed }"
+            >
+              <path
+                d="M2.25 8.25C2.25 5.42157 2.25 4.00736 3.12868 3.12868C4.00736 2.25 5.42157 2.25 8.25 2.25H9.75C12.5784 2.25 13.9927 2.25 14.8713 3.12868C15.75 4.00736 15.75 5.42157 15.75 8.25V9.75C15.75 12.5784 15.75 13.9927 14.8713 14.8713C13.9927 15.75 12.5784 15.75 9.75 15.75H8.25C5.42157 15.75 4.00736 15.75 3.12868 14.8713C2.25 13.9927 2.25 12.5784 2.25 9.75V8.25Z"
+                stroke="#5E5873"
+                stroke-width="1.125"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M11.25 2.25V15.75"
+                stroke="#5E5873"
+                stroke-width="1.125"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M6 6.75L6.83114 7.40901C7.77705 8.15903 8.25 8.53403 8.25 9C8.25 9.46597 7.77705 9.84097 6.83114 10.591L6 11.25"
+                stroke="#5E5873"
+                stroke-width="1.125"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
         </div>
 
         <button class="menu-item active" type="button">
           <v-icon size="18">mdi-bullhorn-variant-outline</v-icon>
-          <span>Campaign</span>
+          <span class="sidebar-label">Campaign</span>
         </button>
 
         <div class="sidebar-spacer" />
 
-        <div class="profile-card">
+        <div v-show="!isSidebarCollapsed" class="profile-card">
           <div class="profile-row">
             <div class="avatar-with-status avatar-with-status-sm">
               <v-avatar size="34">
@@ -186,14 +197,20 @@ onBeforeUnmount(() => {
           <div class="profile-address">johndoe@gmail.com</div>
         </div>
 
+        <div v-show="isSidebarCollapsed" class="collapsed-avatar">
+          <v-avatar size="34">
+            <img class="avatar-image" src="./assets/john-doe.png" alt="John Doe">
+          </v-avatar>
+        </div>
+
         <div class="theme-toggle">
-          <button class="toggle-btn active" type="button">
+          <button class="toggle-btn" :class="{ active: activeTheme === 'light' }" type="button" @click="setTheme('light')">
             <v-icon size="14">mdi-white-balance-sunny</v-icon>
-            Light
+            <span class="sidebar-label">Light</span>
           </button>
-          <button class="toggle-btn" type="button">
+          <button class="toggle-btn" :class="{ active: activeTheme === 'dark' }" type="button" @click="setTheme('dark')">
             <v-icon size="14">mdi-weather-night</v-icon>
-            Dark
+            <span class="sidebar-label">Dark</span>
           </button>
         </div>
       </aside>
@@ -988,9 +1005,26 @@ onBeforeUnmount(() => {
   object-fit: contain;
 }
 
-.brand-helper-icon {
+.brand-helper-btn {
   margin-left: auto;
+  border: 0;
+  background: transparent;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
   color: #a8afc0;
+  transition: background 0.15s;
+}
+
+.brand-helper-btn:hover {
+  background: #f0f2f7;
+}
+
+.icon-flipped {
+  transform: scaleX(-1);
 }
 
 .menu-item {
@@ -3066,6 +3100,281 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* ── Sidebar collapsed state ── */
+.sidebar--collapsed {
+  width: 80px;
+}
+
+.sidebar--collapsed .brand {
+  justify-content: center;
+}
+
+.sidebar--collapsed .brand-helper-btn {
+  margin-left: 0;
+}
+
+.sidebar--collapsed .menu-item {
+  justify-content: center;
+  padding: 0;
+}
+
+.sidebar--collapsed .sidebar-label {
+  display: none;
+}
+
+.sidebar--collapsed .theme-toggle {
+  border-radius: 8px;
+}
+
+.sidebar--collapsed .toggle-btn {
+  padding: 0;
+  justify-content: center;
+}
+
+.collapsed-avatar {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+/* ── Dark theme overrides for custom-styled elements ── */
+.v-theme--customDark .sidebar,
+.v-theme--customDark .main-content,
+.v-theme--customDark .top-bar {
+  background: #1e1e1e;
+  border-color: #333;
+}
+
+.v-theme--customDark .campaign-app {
+  background: #121212;
+}
+
+.v-theme--customDark .layout-shell {
+  background: #121212;
+}
+
+.v-theme--customDark .profile-card {
+  background: #2a2a2e;
+  border-color: #333;
+}
+
+.v-theme--customDark .profile-name,
+.v-theme--customDark .top-profile-name,
+.v-theme--customDark .campaigns-list-head h3,
+.v-theme--customDark .stats-campaign-head h4,
+.v-theme--customDark .overview-head h4,
+.v-theme--customDark .campaign-actions-card h4,
+.v-theme--customDark .reply-performance-card h4,
+.v-theme--customDark .reply-analysis-card h4,
+.v-theme--customDark .recent-activity-card h4,
+.v-theme--customDark .settings-section-title,
+.v-theme--customDark .profiles-title,
+.v-theme--customDark .activity-title,
+.v-theme--customDark .person-name,
+.v-theme--customDark .campaign-name-col strong,
+.v-theme--customDark .overview-bar b,
+.v-theme--customDark .campaign-metric-col b,
+.v-theme--customDark .gauge-value,
+.v-theme--customDark .reply-legend-head,
+.v-theme--customDark .reply-legend b,
+.v-theme--customDark .stats-empty-state h3,
+.v-theme--customDark .assist-item-title,
+.v-theme--customDark .import-option h4,
+.v-theme--customDark .workflow-modal-title,
+.v-theme--customDark .lookalike-modal-title,
+.v-theme--customDark .lookalike-item-name,
+.v-theme--customDark .workflow-option-title,
+.v-theme--customDark .lookalike-modal-empty h4,
+.v-theme--customDark .settings-label,
+.v-theme--customDark .zapier-head,
+.v-theme--customDark .perf-row,
+.v-theme--customDark .actions-cols div > div,
+.v-theme--customDark .recent-activity-card li,
+.v-theme--customDark .reply-legend,
+.v-theme--customDark .campaign-crm-col,
+.v-theme--customDark .account-type-cell,
+.v-theme--customDark .daily-limit-pill,
+.v-theme--customDark .import-method-title,
+.v-theme--customDark .campaign-list-header,
+.v-theme--customDark .profiles-table-head,
+.v-theme--customDark .step-item,
+.v-theme--customDark .step-item.active,
+.v-theme--customDark .profile-address {
+  color: #f0f0f0;
+}
+
+.v-theme--customDark .profile-role,
+.v-theme--customDark .top-profile-role,
+.v-theme--customDark .crumbs,
+.v-theme--customDark .campaigns-list-head p,
+.v-theme--customDark .campaign-name-col small,
+.v-theme--customDark .campaign-metric-col small,
+.v-theme--customDark .overview-bar label,
+.v-theme--customDark .person-sub,
+.v-theme--customDark .profiles-subtitle,
+.v-theme--customDark .settings-section-subtitle,
+.v-theme--customDark .assist-subtitle,
+.v-theme--customDark .assist-item-text,
+.v-theme--customDark .activity-time,
+.v-theme--customDark .activity-by,
+.v-theme--customDark .workflow-modal-subtitle,
+.v-theme--customDark .lookalike-modal-subtitle,
+.v-theme--customDark .import-option p,
+.v-theme--customDark .url-footnote,
+.v-theme--customDark .settings-footnote,
+.v-theme--customDark .campaign-progress-meta,
+.v-theme--customDark .campaign-actions-card p,
+.v-theme--customDark .reply-performance-card p,
+.v-theme--customDark .gauge-label,
+.v-theme--customDark .stats-empty-state p {
+  color: #8a8a9a;
+}
+
+.v-theme--customDark .menu-item {
+  border-color: #444;
+  color: #c0c0c8;
+  background: #1e1e1e;
+}
+
+.v-theme--customDark .menu-item.active {
+  color: #fff;
+  border-color: transparent;
+}
+
+.v-theme--customDark .theme-toggle {
+  border-color: #444;
+  background: #2a2a2e;
+}
+
+.v-theme--customDark .toggle-btn {
+  color: #a0a0a8;
+}
+
+.v-theme--customDark .toggle-btn.active {
+  background: #333;
+  color: #e0e0e0;
+}
+
+.v-theme--customDark .brand-helper-btn:hover {
+  background: #333;
+}
+
+.v-theme--customDark .settings-card,
+.v-theme--customDark .profiles-card,
+.v-theme--customDark .stats-campaign-card,
+.v-theme--customDark .stats-overview-card,
+.v-theme--customDark .campaign-actions-card,
+.v-theme--customDark .reply-performance-card,
+.v-theme--customDark .reply-analysis-card,
+.v-theme--customDark .recent-activity-card,
+.v-theme--customDark .window-card,
+.v-theme--customDark .assist-card,
+.v-theme--customDark .import-method-card,
+.v-theme--customDark .campaign-list-table,
+.v-theme--customDark .zapier-card {
+  background: #1e1e1e;
+  border-color: #333;
+}
+
+.v-theme--customDark .campaign-list-header,
+.v-theme--customDark .profiles-table-head,
+.v-theme--customDark .zapier-head {
+  background: #262630;
+}
+
+.v-theme--customDark .workflow-modal,
+.v-theme--customDark .lookalike-modal {
+  background: #1e1e1e;
+  border-color: #333;
+}
+
+.v-theme--customDark .workflow-modal-header,
+.v-theme--customDark .lookalike-modal-header {
+  background: #262630;
+  border-color: #333;
+}
+
+.v-theme--customDark .workflow-option {
+  border-color: #333;
+  background: #1e1e1e;
+}
+
+.v-theme--customDark .workflow-option.active {
+  background: #1c2236;
+  border-color: #3a4a7a;
+}
+
+.v-theme--customDark .settings-input,
+.v-theme--customDark .window-select-row,
+.v-theme--customDark .time-field,
+.v-theme--customDark .url-input-row input {
+  background: #2a2a2e;
+  border-color: #444;
+  color: #e8e8ee;
+}
+
+.v-theme--customDark .import-option {
+  background: #262630;
+  border-color: #444;
+}
+
+.v-theme--customDark .day-btn {
+  background: #2a2a2e;
+  border-color: #444;
+  color: #a0a0aa;
+}
+
+.v-theme--customDark .day-btn.active {
+  background: #1c2236;
+  border-color: #4a5a8a;
+  color: #7a9aff;
+}
+
+.v-theme--customDark .campaign-list-row,
+.v-theme--customDark .profiles-row,
+.v-theme--customDark .assist-item,
+.v-theme--customDark .import-method-title,
+.v-theme--customDark .profiles-toolbar,
+.v-theme--customDark .profiles-card-header,
+.v-theme--customDark .reply-gauge,
+.v-theme--customDark .reply-legend-head,
+.v-theme--customDark .assist-head,
+.v-theme--customDark .zapier-events {
+  border-color: #333;
+}
+
+.v-theme--customDark .workflow-steps {
+  background: #262630;
+  border-color: #333;
+}
+
+.v-theme--customDark .step-icon {
+  background: #333;
+}
+
+.v-theme--customDark .campaign-progress {
+  background: #262630;
+  border-color: #333;
+}
+
+.v-theme--customDark .campaign-progress-bar {
+  background: #333;
+}
+
+.v-theme--customDark .actions-team-footer {
+  background: #262630;
+  border-color: #333;
+}
+
+.v-theme--customDark .logout-btn {
+  color: #a0a0aa;
+}
+
+.v-theme--customDark :deep(.logout-btn.v-btn) {
+  border-color: #444;
+  background: #2a2a2e;
 }
 
 /* ── Mobile hamburger: hidden on desktop ── */
